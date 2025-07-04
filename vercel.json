@@ -5,27 +5,25 @@
     }
   },
   "routes": [
-    // Rule for the root path (to serve index.php)
+ 
     {
       "src": "/",
       "dest": "/api/index.php",
-      "methods": ["GET"] // Only GET for the main page load
+      "methods": ["GET"] 
     },
-    // Rule for index.php itself (allowing GET and POST for submission to self, if you chose that)
+    
     {
       "src": "/api/index.php",
       "dest": "/api/index.php"
-      // No "methods" specified means it will handle both GET/POST, or you can explicitly add them.
-      // If your form action is "", it will POST to /api/index.php which this route will handle.
+     
     },
-    // Rule for submit.php (allowing POST for form submission)
+   
     {
       "src": "/api/submit.php",
       "dest": "/api/submit.php",
-      "methods": ["POST"] // Explicitly handle POST for submit.php
+      "methods": ["POST"] 
     },
-    // Fallback rule for other assets (e.g., if you had images, CSS not embedded, etc.)
-    // This is a general catch-all that maps /path/to/file to /api/path/to/file
+   
     {
       "src": "/(.*)",
       "dest": "/api/$1"
