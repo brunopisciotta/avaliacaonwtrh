@@ -2,7 +2,7 @@
 // submit.php
 
 // A URL do seu Google Apps Script implantado
-$appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzK-yZEAyED-oU_MT0M68Aac4_Mkn8oBc2di-eN91IxSTFPlrHIoHizC0M8eLIYh3Ff/exec';
+$appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzK-yZEAyED-oU_MT0m68Aac4_Mkn8oBc2di-eN91lxSTFPlrHloHizC0M8eLlYh3Ff/exec';
 
 // Captura os dados do formulário
 $username = $_POST['username_field_hidden'] ?? '';
