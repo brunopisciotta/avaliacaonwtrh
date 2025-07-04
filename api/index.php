@@ -222,7 +222,7 @@
         </div>
 
         <div id="evaluationSection" class="hidden">
-            <form id="evaluationForm" action="submit.php" method="POST">
+            <form id="evaluationForm" action="/api/submit.php" method="POST">
                 <p>Obrigado por autenticar! Agora, por favor, deixe sua avaliação:</p>
                 
                 <div class="input-group">
