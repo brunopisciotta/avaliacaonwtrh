@@ -211,7 +211,7 @@
         <div id="loginSection">
             <p>Para a organização das avaliações, insira seu usuário e senha para prosseguir:</p>
             <div class="input-group">
-                <label for="username">Usuário:</label>
+                <label for="username">Email Coorporativo:</label>
                 <input type="text" id="username" name="username_field" required>
             </div>
             <div class="input-group">
