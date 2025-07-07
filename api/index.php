@@ -206,7 +206,7 @@
             </svg>
         </div>
         <h1>Avalie o Departamento de TI</h1>
-        <p>A sua opinião é fundamental para aprimorarmos continuamente nossos serviços e garantir a melhor experiência para todos os colaboradores. Sua avaliação é anônima e nos ajuda a identificar pontos fortes e áreas de melhoria.</p>
+        <p>A sua opinião é fundamental para aprimorarmos continuamente nossos serviços e garantir a melhor experiência para todos os colaboradores. Sua avaliação não será compartilhada e nos ajuda a identificar pontos fortes e áreas de melhoria.</p>
 
         <div id="loginSection">
             <p>Para a organização das avaliações, insira seu usuário e senha para prosseguir:</p>
