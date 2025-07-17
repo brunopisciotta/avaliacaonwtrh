@@ -21,16 +21,28 @@ $logData = [
 $logScriptUrl = 'https://script.google.com/macros/s/AKfycbzK-yZEAyED-oU_MT0m68Aac4_Mkn8oBc2di-eN91lxSTFPlrHloHizC0M8eLlYh3Ff/exec'; // mesmo Apps Script
 
 $payload = json_encode($logData);
-$ch = curl_init($logScriptUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/json',
-    'Content-Length: ' . strlen($payload)
-]);
-curl_exec($ch);
-curl_close($ch);
+
+$payload = json_encode($data);
+
+$options = [
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/json\r\n",
+        'content' => $payload
+    ]
+];
+
+$context = stream_context_create($options);
+
+$response = file_get_contents($logScriptUrl, false, $context);
+
+// Se quiser tratar o retorno do Apps Script:
+if ($response !== false) {
+    $result = json_decode($response, true);
+    // Aqui você pode verificar $result['status'], etc.
+} else {
+    // Erro ao fazer a requisição
+}
 ?>
 
 <!DOCTYPE html>
