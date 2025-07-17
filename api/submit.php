@@ -18,47 +18,51 @@ $data = [
 
 $payload = json_encode($data);
 
-// --- INÍCIO DA ALTERAÇÃO: Usando stream context em vez de cURL ---
+// Configura a requisição cURL
+$ch = curl_init($appsScriptUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($payload)
+]);
 
-$options = [
-    'http' => [
-        'header'  => "Content-type: application/json\r\n",
-        'method'  => 'POST',
-        'content' => $payload,
-        'ignore_errors' => true // Importante para pegar respostas de erro HTTP
-    ]
-];
-$context  = stream_context_create($options);
+// Removendo CURLOPT_VERBOSE e CURLOPT_HEADER para não poluir o log,
+// mas você pode reativá-los para depuração futura, se necessário.
 
-// Executa a requisição
-// Linha 22 (aproximadamente, se as linhas acima forem iguais) -->
-$response = @file_get_contents($appsScriptUrl, false, $context);
+// Executa a requisição cURL
+$response = curl_exec($ch);
 
-// Verifica por erros no PHP ao tentar acessar a URL
-if ($response === false) {
-    // Isso captura erros de rede ou DNS antes mesmo de uma resposta HTTP
-    $error_msg = error_get_last()['message'] ?? "Erro desconhecido ao conectar com o Apps Script.";
-    error_log("Stream Context Error (masked for front-end): " . $error_msg);
-    header('Location: index.php?status=success&message=' . urlencode("Sua avaliação foi enviada com sucesso! (Houve um aviso no servidor: " . $error_msg . ")"));
+// --- ATENÇÃO: ESTE TRECHO É ALTERADO PARA SEMPRE MOSTRAR SUCESSO NO FRONT-END ---
+
+// Mesmo que haja um erro cURL, vamos tentar redirecionar como sucesso para o front-end
+if (curl_errno($ch)) {
+    $error_msg = curl_error($ch);
+    error_log("cURL Error (masked for front-end): " . $error_msg); // Loga o erro real no servidor
+    curl_close($ch);
+    // Redireciona com sucesso, pois os dados já foram enviados (assumindo que o Apps Script funcionou antes de falhar na resposta)
+    header('Location: index.php?status=success&message=' . urlencode("Sua avaliação foi enviada com sucesso! (Houve um aviso no servidor)"));
     exit;
 }
 
-// --- FIM DA ALTERAÇÃO ---
+// Separar os cabeçalhos do corpo da resposta
+$header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+$body = substr($response, $header_size);
 
-
-// Como 'ignore_errors' está true, a resposta HTTP 200 é tratada como sucesso pelo file_get_contents,
-// e precisamos extrair o status real da resposta do Apps Script.
+// Fecha a sessão cURL
+curl_close($ch);
 
 // Decodifica a resposta do Apps Script (ainda fazemos isso para ver o status real no log)
-$response_data = json_decode($response, true);
+$response_data = json_decode($body, true);
 
 if (isset($response_data['status']) && $response_data['status'] === 'success') {
-    error_log("Apps Script Response (Success): " . $response); // Loga a resposta real de sucesso
+    error_log("Apps Script Response (Success): " . $body); // Loga a resposta real de sucesso
     header('Location: index.php?status=success&message=' . urlencode("Sua avaliação foi enviada com sucesso! Agradecemos sua colaboração."));
     exit;
 } else {
     // Se não for 'success' no Apps Script, logamos o erro real no servidor
-    error_log("Apps Script Response (Error Masked for front-end): " . $response);
+    error_log("Apps Script Response (Error Masked for front-end): " . $body);
     error_log("Apps Script Parsed Data (Error Masked): " . print_r($response_data, true));
 
     // Mas redirecionamos com sucesso para o front-end, conforme solicitado
