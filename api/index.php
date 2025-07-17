@@ -22,8 +22,6 @@ $logScriptUrl = 'https://script.google.com/macros/s/AKfycbzK-yZEAyED-oU_MT0m68Aa
 
 $payload = json_encode($logData);
 
-$payload = json_encode($data);
-
 $options = [
     'http' => [
         'method' => 'POST',
